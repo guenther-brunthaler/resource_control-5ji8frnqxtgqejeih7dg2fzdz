@@ -1,6 +1,6 @@
 Handling of buffers with different allocation properties
 ========================================================
-v2020.115.4
+v2020.115.5
 
 This document is part of the R4G (Resource control framework, 4th generation) project.
 
@@ -13,7 +13,7 @@ There have been many implementations of those during the years, but the newest a
 typedef struct {
 	char *start; /* Null if the buffer has not been allocated yet. */
 	size_t length; /* Does *not* include the '\0' if it is a C string. */
-	size_t capacity; /* Zero if this slice cannot be reallocated/freed. */
+	size_t capacity; /* Zero when start != 0 if not not owned by us. */
 } slice;
 ....
 
