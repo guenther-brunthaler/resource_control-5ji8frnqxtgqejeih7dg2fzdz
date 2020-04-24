@@ -1,13 +1,13 @@
 Handling of buffers with different allocation properties
 ========================================================
-v2020.115.2
+v2020.115.3
 
 This document is part of the R4G (Resource control framework, 4th generation) project.
 
 There have been many implementations of those during the years, but the newest approach (shamelessly stealing from "Go") does like this:
 
 ....
-/* Describes a portion of memory area. Frequently but not necessarily
+/* Describes a portion of a memory area. Frequently but not necessarily
  * dynamically allocated. Can also be a "window" into a larger object.
  * Primarily meant to represent binary bytes, but also works for text. */
 typedef struct {
