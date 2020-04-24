@@ -1,5 +1,5 @@
-Handling of dynamically-allocated buffers
-=========================================
+Handling of buffers with different allocation properties
+========================================================
 v2020.115
 
 This document is part of the R4G (Resource control framework, 4th generation) project.
@@ -14,6 +14,7 @@ typedef struct {
 
 As simple a this structure is, there are many things that need to be said about it, and which have gone wrong in previous implementations.
 
+There is also a fundamental change to earlier iterations of the concept, which is that slices can refer to dynamically allocated buffers as well as to statically allocated or temporary (on the stack) ones.
 
 start
 -----
