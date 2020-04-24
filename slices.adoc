@@ -1,6 +1,6 @@
 Handling of buffers with different allocation properties
 ========================================================
-v2020.115.3
+v2020.115.4
 
 This document is part of the R4G (Resource control framework, 4th generation) project.
 
@@ -13,7 +13,7 @@ There have been many implementations of those during the years, but the newest a
 typedef struct {
 	char *start; /* Null if the buffer has not been allocated yet. */
 	size_t length; /* Does *not* include the '\0' if it is a C string. */
-	size_t capacity; /* Can be zero for statically allocated data. */
+	size_t capacity; /* Zero if this slice cannot be reallocated/freed. */
 } slice;
 ....
 
@@ -90,11 +90,11 @@ Rejected alternative choices for this identifier:
 * used
 * len
 
-"size" is too generic. It also raises questions whether the null terminator is included in case of C strings or not. It is better to used "len" or "length" instead, at least for C strings, because of the connotation with the strlen() function, which also does not include the null byte in its result.
+"size" is too generic. It also raises questions whether the null terminator is included in case of C strings or not. It is better to use "len" or "length" instead, at least for C strings, because of the connotation with the `strlen()` function, which also does not include the null byte in its result.
 
-"used" infers that the buffer already contains valid data of some kind. This must not be the case. A newly allocated buffer might be *usable*, but it is not yet *used*.
+"used" infers that the buffer already has some previous history of *usage*. This must not be the case. A newly allocated buffer might be *usable*, but it is not yet *used*.
 
-"len" would have been an appropriate choice of we named the other size-variable "cap". But as we named it "capacity", we had to use the full name here too, for maintaining naming consistency.
+"len" would have been an appropriate choice of we named the other size-variable "cap". But as we named it "capacity", we had to use the full name here too, for maintaining a sense of naming consistency.
 
 
 capacity
