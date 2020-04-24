@@ -28,7 +28,7 @@ Instead, the C standard defines a `char` the same as a `byte`. At least when it 
 
 * The `sizeof(char)` must be `1`.
 
-It follows, that a `char` always has the same size as a byte - and this is all we case about in a binary buffer, because we will see it as an opaque array of *bytes*.
+It follows, that a `char` always has the same size as a byte - and this is all we care about im case a binary buffer, because we will see it as an opaque array of *bytes*.
 
 Also, no pointer arithmetic can be done on "`void *`"s. They need to be casted into something, which is not what we want when dealing with byte arrays. Therfore, `char *` is actually a very good general type for byte arrays, despite the connotations with human-readable text it might evoke.
 
@@ -109,6 +109,8 @@ Neither can a null-terminator be added to it, except there is enough space withi
 It is permissible for such a slice to move `start` or reduce the value of `length`, but the new effective settings of the slice must be within the bounds of the old slice.
 
 If `capacity` is not null, it guarantees that this slice represents the whole buffer, and can be reallocated or deallocated using functions like malloc/realloc.
+
+Actually, it does not have to be malloc/realloc at all - but it must always be the same set of allocation functions, which is easy to achieve because allocation, reallocation and deallocation are all handled by the same function. (At least as of now in the R4G framework.)
 
 If `capacity` is null, the slice should also be considered read-only in most cases, because it usually means that we see just a window into a larger buffer which is shared with someone else. And we do not generally know if those other ones like it if we change something in the buffer. Of course, this is not a problem if the caller explicitly entitled us to do so.
 
