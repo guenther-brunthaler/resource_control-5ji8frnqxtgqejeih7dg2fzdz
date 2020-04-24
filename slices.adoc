@@ -8,9 +8,9 @@ There have been many implementations of those during the years, but the newest a
 
 ....
 typedef struct {
-	char *start;
-	size_t length;
-	size_t capacity;
+	char *start; /* Null if the buffer has not been allocated yet. */
+	size_t length; /* Does *not* include the '\0' if it is a C string. */
+	size_t capacity; /* Can be null for statically allocated data. */
 } slice;
 ....
 
