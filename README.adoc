@@ -1,0 +1,111 @@
+Resource Control
+================
+Guenther Brunthaler
+v2020.115
+
+This project intends to collect all ideas, new and old ones, 
+regarding my set of "resource control framework" implementations, 
+which goes back to the 90's when I implemented the first such 
+framework for the Commodore AMIGA.
+
+The AMIGA's operating system was especially unforgiving when a 
+program failed to deallocate any resources that it allocated 
+before, especially in case of program errors: Even a simple 
+dynamically allocated memory block was completely lost to the 
+system until the next reboot, unless the program deallocated it 
+properly before exiting.
+
+The first resource control framework, titled "RCS" (for "Resource 
+Control System") then somewhat unfortunately (at that time I did 
+not know yet about the existence of the "Revsion Control 
+System"), was therefore written with the primary goal to 
+deallocate any resources dynamically allocated by the application 
+in all but the most catastropic failure scenarios.
+
+Since then, many years have passed, and local resource control is 
+no longer as important as it was in AMIGA times, because these 
+days the operating system will return most resources 
+automatically to the system once an application terminates 
+prematurely (or normally).
+
+However, there are still exceptions: Temporary files will not 
+always be removed automatically, networking connections might not 
+be properly shutdown resulting in timeout problems for connected 
+clients, primitive databases might remain in an inconsistent 
+state and so on.
+
+So it is still a good idea to deallocate dynamically allocated 
+resources properly, even though it is not as important as it was 
+earlier anymore.
+
+Also there is a different aspect of my resource-control 
+frameworks, which is becoming more and more important those days, 
+while it was rather a necessary be-product of my original RCS: 
+Error handling.
+
+It is an unfortunately fact that most C programs do not care 
+about error handling except for the most obvious sourced of 
+errors like memory allocation failures or files that could not be 
+opened.
+
+But hardly anyone checks the return code of printf(), just for a 
+prominent example.
+
+The problem with this approach, no matter how popular it might 
+be, is that many I/O errors will go by undetected, and the 
+program will continue and possible make things even worse by 
+doing so, instead of stopping when something is obviously not 
+right.
+
+Therefore, the primary focus of newer generations of my resource 
+control frameworks now is correct error handling, even in 
+situations where most languages (like C++) fail.
+
+For instance, there is the "double exception" problem in C++: The 
+try/catch blocks work fine as long there are no exceptions while 
+unwinding the stack as a consequence of destructor activity.
+
+But what shall a conforming C++ application do if an exception 
+arises within one of its destructors, which might even lead to 
+cascading failures in further destructors?
+
+C++ is not really well-equipped for that kind of situation, but 
+my resource control frameworks are.
+
+While I do not currently use C++ any longer (I was for many 
+years) and have returned to using plain C, my concepts for error 
+handling will work in C++, too. They might collide with try/catch 
+in some situations, but then no-one forces a C++ programmer to 
+use try/catch all the time.
+
+It has also turned out that while C++ provides a very nice 
+resource control feature via its destructors (as long as there 
+are no double exceptions), most other languages completely or 
+largly fail in this regard.
+
+Most assume garbage collection will take care of the issue, which 
+is incorrect because GC only deals with dynamic memory 
+allocation. All other kinds of resources are ignored by most 
+implementations, and will therefore still need specific handling 
+by the application.
+
+There are also languages like JAVA which, while they provide both 
+exceptions and automatic cleanup functions ("finalizers"), allow 
+too little control over those features. For instance, it is often 
+underdermined when and in which orders finalizers will be run. 
+And in some cases, the might not be run at all!
+
+Which means, even such languages which seem to "provide it all" 
+on the first glance, may require an additional layer of resource 
+control in order to ensure correct behavior even in those "corner 
+cases" which do not arise frequently, but should nevertheless be 
+correctly dealt with by any reliable program.
+
+This point is more important than ever, given the risk of 
+cyber-attacks which intentionally try to trigger such corner 
+cases, and hope the software might react in a 
+security-threatening way in sich cases.
+
+More often than not, such expectations are justified.
+
+My resource control frameworks try their best to avoid this.
