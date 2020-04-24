@@ -1,7 +1,7 @@
 Resource Control
 ================
 Guenther Brunthaler
-v2020.115
+v2020.115.1
 
 This project intends to collect all ideas, new and old ones, 
 regarding my set of "resource control framework" implementations, 
@@ -59,26 +59,27 @@ right.
 
 Therefore, the primary focus of newer generations of my resource 
 control frameworks now is correct error handling, even in 
-situations where most languages (like C++) fail.
+situations where most languages (like 'C++') fail.
 
-For instance, there is the "double exception" problem in C++: The 
-try/catch blocks work fine as long there are no exceptions while 
-unwinding the stack as a consequence of destructor activity.
+For instance, there is the "double exception" problem in 'C++': 
+The try/catch blocks work fine as long there are no exceptions 
+while unwinding the stack as a consequence of destructor 
+activity.
 
-But what shall a conforming C++ application do if an exception 
+But what shall a conforming 'C++' application do if an exception 
 arises within one of its destructors, which might even lead to 
 cascading failures in further destructors?
 
-C++ is not really well-equipped for that kind of situation, but 
+'C++' is not really well-equipped for that kind of situation, but 
 my resource control frameworks are.
 
-While I do not currently use C++ any longer (I was for many 
+While I do not currently use 'C++' any longer (I was for many 
 years) and have returned to using plain C, my concepts for error 
-handling will work in C++, too. They might collide with try/catch 
-in some situations, but then no-one forces a C++ programmer to 
-use try/catch all the time.
+handling will work in 'C++', too. They might collide with 
+try/catch in some situations, but then no-one forces a 'C++' 
+programmer to use try/catch all the time.
 
-It has also turned out that while C++ provides a very nice 
+It has also turned out that while 'C++' provides a very nice 
 resource control feature via its destructors (as long as there 
 are no double exceptions), most other languages completely or 
 largly fail in this regard.
