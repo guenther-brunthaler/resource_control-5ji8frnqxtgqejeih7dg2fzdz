@@ -1,21 +1,15 @@
 Handling of buffers with different allocation properties
 ========================================================
-v2020.115.7
+v2020.116.1
 
 This document is part of the R4G (Resource control framework, 4th generation) project.
 
 There have been many implementations of those during the years, but the newest approach (shamelessly stealing from "Go") does like this:
 
-....
-/* Describes a portion of a memory area. Frequently but not necessarily
- * dynamically allocated. Can also be a "window" into a larger object.
- * Primarily meant to represent binary bytes, but also works for text. */
-typedef struct {
-	char *start; /* Null if the buffer has not been allocated yet. */
-	size_t length; /* Does *not* include the '\0' if it is a C string. */
-	size_t capacity; /* Zero if start != 0 is not owned by slice. */
-} slice;
-....
+[listing]
+--
+include::slice.h[]
+--
 
 As simple a this structure is, there are many things that need to be said about it, and which have gone wrong in previous implementations.
 
@@ -120,11 +114,7 @@ Actually, it does not have to be malloc/realloc at all - but it must always be t
 
 If `capacity` is null, the slice should also be considered read-only in most cases, because it usually means that we see just a window into a larger buffer which is shared with someone else. And we do not generally know if those other ones like it if we change something in the buffer. Of course, this is not a problem if the caller explicitly entitled us to do so.
 
-This semantics have the advantage that slices can be used for constant strings literals as well as static char arrays as well as dynamically allocated strings.
-
-There is only one problems: How to refer to read-only data.
-
-`start` cannot be a `const *`, or a dynamically allocated buffer could not be resized. But it should be a `const *` when the slice refers to a constant string literal.
+This semantics have the advantage that slices can be used for writable static char arrays as well as dynamically allocated strings.
 
 Regarding the name choices - the following alternative names for the identifier were considered (or were used on earlier iterations of the concept):
 
@@ -144,3 +134,33 @@ Those were eventually rejected for the following reasons:
 "cap" could be misinterpreted as "capped", which is not intented.
 
 Plus, "Go" also names it "capacity". It may be a little long. But it works and is fitting. There is no contradiction. Therefore we adopted this choice.
+
+
+The read-only problem
+---------------------
+
+Original the hope was that slices could reference writable buffers as well as read-only buffers, such as the contents of constant strings literals.
+
+However, that was not possible.
+
+`start` cannot be a "`char const *`", because then no-one could modify the contents of a writable buffer.
+
+But unless it *is* a "`char const *`", it is not possible (without a cast) to assign a pointer to a constant literal to `start`.
+
+I tried several approaches, and one using unions actually worked. However, it looked like dirty trick to me, and so I abandoned that approach, too.
+
+The new solution is the `slice_view` type. This is a stripped-down version of `slice` and has a "`char const *`" as the type for its `start` field. Therefor, this can now be used for slicing constant literal strings.
+
+However, it is a new type, and as such incompatible with `slice`.
+
+While it has a compatible structure (it is actually a prefix of `slice`) and any `slice` *could* therefore be casted into a `slice_view`, it would still be casting like casting away constantness.
+
+But we do this, we could cast a constant string literal into a non-constant one also, and then use the normal `slice` on it.
+
+In other words, the same mess, just more complicated.
+
+In order to avoid this and user a clean approach, I instead provided the `slice2view_c0()` function which copies the two common fields from the writable `slice` to the read-only `slice_view`.
+
+This is safe and this is clean.
+
+A little inefficient maybe, but I hope such conversions will not be necessary too often.
