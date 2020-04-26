@@ -1,0 +1,149 @@
+DCM 1.1
+=======
+Günther Brunthaler
+v2020.117
+
+This is a description of DCM revision 1.1, 2020-04-25 edition.
+
+
+Abstract
+--------
+
+The Descriptor Component Model (DCM) is a model for exposing and using objects between different software components.
+
+It is typically being used by external "plug-in"- or "functionality extension"-modules in order to communicate with the main application executable.
+
+The purpose of DCM is communication between compilation units built at different times, often by different developers and on different machines.
+
+DCM is an alternative to existing software component models like DCOM and XPCOM.
+
+Compared to those models, DCM is less restrictive, more generic, easier to implement, and does not require type casts or the use of C preprocessor macros.
+
+
+Long description
+----------------
+
+At the basic level, DCM is employed by processes running in the same address space on the same machine. This applies to most typical plug-in modules.
+
+But by employing any kind of IPC (inter-process communication) or RPC (remote procedure call), this can be also be extended to different address spaces on the same machine, to different nodes within a computing cluster, or to communication between arbitrary networked remote computers. 
+
+
+Descriptors
+~~~~~~~~~~~
+
+The heart of DCM is the 'descriptor'. This is also what gives the model its name.
+
+A descriptor is a 'C/C++'-language `struct` (or simple variable if this is sufficient) fully exposed to its users which should contain at least a pointer to a method table.
+
+By convention, this pointer has the field name '`m`' (like "methods") within the descriptor structure and will also be its first field.
+
+But even though recommended, this is not required. Any name will do, and it does not need to be the first field either. (Neither does it need to exist. But as a class without methods is not good for much, most classes will provide a method table.)
+
+The descriptor is *not* supposed to contain any private data used by an object. Such data (typically class-private data or instance variables of an object) will be stored elsewhere, as will be explained later.
+
+The method table contains function pointers to all methods provided by one particular class of the software component.
+
+Note that while every software component might provide several such classes, an object descriptor can only refer to one of those classes at the same time. (At least usually. It is not forbidden that a descriptor may describe multiple classes at the same time, containing multiple method table pointers.)
+
+Normally, method tables should be constant and contain only function pointers. However, this is not mandatory either. The method table can contain data fields as well, even writable data. However, it is strongly advised against doing such things without very good reason.
+
+DCM descriptors can describe both classes and objects.
+
+
+A minimal class
+~~~~~~~~~~~~~~~
+
+A minimal DCM descriptor will typically look like this:
+
+[listing]
+--
+include::dcm_demo_1.h[]
+--
+
+Of course, such a descriptor would be quite useless because it does not describe anything. But it is nevertheless a valid DCM class descriptor.
+
+We also need a way to create an instance of such a descriptor. Here is a possible implementation:
+
+[listing]
+--
+include::dcm_demo_1_impl.c[]
+--
+
+And here is how to use the factory function:
+
+[listing]
+--
+include::dcm_demo_1_main.c[]
+--
+
+As useless at it may be, this factory function demonstrates another important convention used by typical DCM factory and interface navigation functions: They pass not only the pointer to the descriptor structure which shall be initialized, but also its byte size.
+
+This is a simple protection of the caller against changes made to the descriptor structure since the application was compiled.
+
+Without this check, it would be possible that the factory function (living in a different compilation unit) initializes more fields than the caller provided in its outdated definition of the descriptor structure, leading to memory corruption.
+
+Even though checks like this are not mandatory for DCM factory functions, but they are highly recommended.
+
+
+A minimalistic class
+~~~~~~~~~~~~~~~~~~~~
+
+Obviously, a minimal class as described in the previous section is not good for anything, except perhaps serving as some kind of dummy object.
+
+Therefore, this section will show the implementation of a minimalistic class that does something (more or less) useful.
+
+It provides a single method `answer` which returns the number `42`:
+
+.Header file "microclass.h"
+----
+struct microclass_methods {
+	int answer(void);
+};
+
+typedef struct {
+	struct microclass_methods const *m;
+} microclass_dsc;
+
+int microclass_factory(microclass_dsc *dsc, size_t dsc_size);
+----
+
+.Implementation file
+----
+#include "microclass.h"
+
+static int microclass_method_answer(void) {
+	return 42;
+}
+
+int microclass_factory(microclass_dsc *dsc, size_t dsc_size) {
+	static struct microclass_methods const vtable= {
+		&microclass_method_answer
+	};
+	if (sizeof *dsc != dsc_size) return 0;
+	dsc->m= &vtable;
+	return 1;
+}
+----
+
+.Usage example
+----
+#include "microclass.h"
+#include <stdlib.h>
+
+int main() {
+	microclass_dsc cls;
+	static const int expected= 42;
+	int returned;
+	if (!microclass_factory(&cls, sizeof cls)) abort();
+	returned= (*cls->m.answer)();
+	if (returned != expected)) abort();
+}
+----
+
+This example program will output nothing if the `answer`-method works as expected, and will otherwise terminate with some kind of error message.
+
+There are two important things the `main()` function does in this case:
+
+* Call a factory function for populating the descriptor
+
+* Call a method via the descriptor's method table found via the `m` pointer.

@@ -1,19 +1,38 @@
 .POSIX:
 
-TARGETS = slice
+SLICE_HEADERS =
+SLICE_TARGET = slice
+SLICE_OBJECTS = slice.o
 
-CFLAGS = -D NDEBUG -O
-LDFLAGS = -s
+DEMO_1_HEADERS = dcm_demo_1.h
+DEMO_1_TARGET = dcm_demo_1
+DEMO_1_OBJECTS = dcm_demo_1_impl.o dcm_demo_1_main.o
+
+TARGETS = \
+	$(DEMO_1_TARGET) \
+	$(SLICE_TARGET) \
+
+OBJECTS = \
+	$(DEMO_1_OBJECTS) \
+	$(SLICE_1_OBJECTS) \
 
 PROJECT_CFLAGS = -I .
 AUGMENTED_CFLAGS = $(CFLAGS) $(CPPFLAGS) $(PROJECT_CFLAGS)
+
+LINK = $(CC) $(AUGMENTED_CFLAGS) $(LDFLAGS)
 
 .PHONY: all clean
 
 all: $(TARGETS)
 
 clean:
-	-rm $(TARGETS)
+	-rm $(TARGETS) $(OBJECTS)
 
 .c:
 	$(CC) $(AUGMENTED_CFLAGS) $(LDFLAGS) -o $@ $<
+
+$(DEMO_1_TARGET): $(DEMO_1_HEADERS) $(DEMO_1_OBJECTS)
+	$(LINK) -o $@ $(DEMO_1_OBJECTS)
+
+$(SLICE_TARGET): $(SLICE_HEADERS) $(SLICE_OBJECTS)
+	$(LINK) -o $@ $(SLICE_OBJECTS)
