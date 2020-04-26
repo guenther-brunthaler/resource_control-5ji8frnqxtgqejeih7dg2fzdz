@@ -1,9 +1,9 @@
 DCM 1.1
 =======
 Günther Brunthaler
-v2020.117
+v2020.117.1
 
-This is a description of DCM revision 1.1, 2020-04-25 edition.
+This is a description of DCM revision 1.1 (for which the design phase started 2020-04-25).
 
 
 Abstract
@@ -60,7 +60,7 @@ A minimal DCM descriptor will typically look like this:
 include::dcm_demo_1.h[]
 --
 
-Of course, such a descriptor would be quite useless because it does not describe anything. But it is nevertheless a valid DCM class descriptor.
+Of course, such a descriptor would be quite useless because it does not describe anything. It is not even a `struct` because it contains no components. But it is nevertheless a valid DCM class descriptor.
 
 We also need a way to create an instance of such a descriptor. Here is a possible implementation:
 
@@ -85,60 +85,60 @@ Without this check, it would be possible that the factory function (living in a 
 Even though checks like this are not mandatory for DCM factory functions, but they are highly recommended.
 
 
+The next-best minimal class
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We will now enhance the minimal class from the previous section and add a method table pointer to it.
+
+However, there will still be no methods provided. (Otherwise it could not be a minimal class any more.)
+
+[listing]
+--
+include::dcm_demo_2.h[]
+--
+
+Note that there is no definition for `struct miniclass2_methods`. This is not required because this class does not provide any methods, and thus the `m` pointer needs never to be dereferenced.
+
+This makes `struct miniclass2_methods` an incomplete class, but this is allowed in 'C' as long as no-one actually tries to access the fields of such a class.
+
+[listing]
+--
+include::dcm_demo_2_impl.c[]
+--
+
+[listing]
+--
+include::dcm_demo_2_main.c[]
+--
+
+As one can see, usage and even the factory function are functionally identical to the previous versions of those files. This should not be a surprise though, because it is still quite a useless class.
+
+
 A minimalistic class
 ~~~~~~~~~~~~~~~~~~~~
 
-Obviously, a minimal class as described in the previous section is not good for anything, except perhaps serving as some kind of dummy object.
+Obviously, a minimal class as described in the previous sections is not good for anything, except perhaps serving as some kind of dummy object.
 
 Therefore, this section will show the implementation of a minimalistic class that does something (more or less) useful.
 
 It provides a single method `answer` which returns the number `42`:
 
-.Header file "microclass.h"
-----
-struct microclass_methods {
-	int answer(void);
-};
+[listing]
+--
+include::dcm_demo_3.h[]
+--
 
-typedef struct {
-	struct microclass_methods const *m;
-} microclass_dsc;
+This time, there is a method table, even though it contains only a single method function.
 
-int microclass_factory(microclass_dsc *dsc, size_t dsc_size);
-----
+[listing]
+--
+include::dcm_demo_3_impl.c[]
+--
 
-.Implementation file
-----
-#include "microclass.h"
-
-static int microclass_method_answer(void) {
-	return 42;
-}
-
-int microclass_factory(microclass_dsc *dsc, size_t dsc_size) {
-	static struct microclass_methods const vtable= {
-		&microclass_method_answer
-	};
-	if (sizeof *dsc != dsc_size) return 0;
-	dsc->m= &vtable;
-	return 1;
-}
-----
-
-.Usage example
-----
-#include "microclass.h"
-#include <stdlib.h>
-
-int main() {
-	microclass_dsc cls;
-	static const int expected= 42;
-	int returned;
-	if (!microclass_factory(&cls, sizeof cls)) abort();
-	returned= (*cls->m.answer)();
-	if (returned != expected)) abort();
-}
-----
+[listing]
+--
+include::dcm_demo_3_main.c[]
+--
 
 This example program will output nothing if the `answer`-method works as expected, and will otherwise terminate with some kind of error message.
 

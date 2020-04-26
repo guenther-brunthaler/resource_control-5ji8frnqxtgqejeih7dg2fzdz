@@ -8,13 +8,25 @@ DEMO_1_HEADERS = dcm_demo_1.h
 DEMO_1_TARGET = dcm_demo_1
 DEMO_1_OBJECTS = dcm_demo_1_impl.o dcm_demo_1_main.o
 
+DEMO_2_HEADERS = dcm_demo_2.h
+DEMO_2_TARGET = dcm_demo_2
+DEMO_2_OBJECTS = dcm_demo_2_impl.o dcm_demo_2_main.o
+
+DEMO_3_HEADERS = dcm_demo_3.h
+DEMO_3_TARGET = dcm_demo_3
+DEMO_3_OBJECTS = dcm_demo_3_impl.o dcm_demo_3_main.o
+
 TARGETS = \
 	$(DEMO_1_TARGET) \
+	$(DEMO_2_TARGET) \
+	$(DEMO_3_TARGET) \
 	$(SLICE_TARGET) \
 
 OBJECTS = \
 	$(DEMO_1_OBJECTS) \
-	$(SLICE_1_OBJECTS) \
+	$(DEMO_2_OBJECTS) \
+	$(DEMO_3_OBJECTS) \
+	$(SLICE_OBJECTS) \
 
 PROJECT_CFLAGS = -I .
 AUGMENTED_CFLAGS = $(CFLAGS) $(CPPFLAGS) $(PROJECT_CFLAGS)
@@ -33,6 +45,12 @@ clean:
 
 $(DEMO_1_TARGET): $(DEMO_1_HEADERS) $(DEMO_1_OBJECTS)
 	$(LINK) -o $@ $(DEMO_1_OBJECTS)
+
+$(DEMO_2_TARGET): $(DEMO_2_HEADERS) $(DEMO_2_OBJECTS)
+	$(LINK) -o $@ $(DEMO_2_OBJECTS)
+
+$(DEMO_3_TARGET): $(DEMO_3_HEADERS) $(DEMO_3_OBJECTS)
+	$(LINK) -o $@ $(DEMO_3_OBJECTS)
 
 $(SLICE_TARGET): $(SLICE_HEADERS) $(SLICE_OBJECTS)
 	$(LINK) -o $@ $(SLICE_OBJECTS)
